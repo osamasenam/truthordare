@@ -1,3 +1,32 @@
 body {
     background-color: ghostwhite;
 }
+
+.chat-messages-container {
+    height: 300px;
+    overflow-y: scroll;
+    margin-bottom: 5%;
+  }
+
+.chat-messages-container img {
+      width: 40px;
+      height: 40px;
+      object-fit: cover;
+      display:inline ;
+  }
+  
+.chat-messages-container p {
+    display:inline ;
+    font-size: 20px;
+}
+
+.chat textarea {
+    width: 50%;
+}
+
+.profile-pic img {
+    width: 100px;
+    height: 100px;
+    object-fit: cover;
+    border-radius: 50%;
+}
