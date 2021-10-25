@@ -3,7 +3,7 @@ import {
     lastTenMessages,
     newMessage,
 } from "./redux/messages/slice.js";
-import { onlineid } from "./redux/onlineid/slice.js";
+import { onlineusers } from './redux/onlineusers/slice.js';
 
 export let socket;
 
@@ -17,8 +17,8 @@ export const init = (store) => {
         );
 
         socket.on("online users", (msgs) =>{
-            console.log("all currently online users:", msgs);
-            store.dispatch(onlineid(msgs));
+            // console.log("all currently online users:", msgs);
+            store.dispatch(onlineusers(msgs));
         }
         );
 

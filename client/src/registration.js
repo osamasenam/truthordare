@@ -16,7 +16,7 @@ export default function Registration () {
         // always save the input fields to be saved in db after clicking submit
         inputsObj[e.target.name] = e.target.value;
         // console.log("inputsObj", inputsObj)
-    };
+    }
 
     function handleRegister(e) {
         e.preventDefault();
@@ -44,14 +44,14 @@ export default function Registration () {
                 location.replace("/login");
             })
             .catch(console.log());
-    };
+    }
 
     function fileSelectHandler(e) {
 
         image = e.target.files[0];
         console.log(image);
     
-    };
+    }
 
     return (
         <div className='registration'>

@@ -30,3 +30,18 @@ body {
     object-fit: cover;
     border-radius: 50%;
 }
+
+.online-users img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 50%;
+}
+
+.online-users .container {
+    display: grid;
+    grid-auto-flow: column;
+    /* grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-gap: 5px; */
+}

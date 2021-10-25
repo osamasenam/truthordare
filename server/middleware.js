@@ -176,17 +176,16 @@ module.exports.getUser = function (req, res, next) {
         });
 };
 
-module.exports.getUserOnline = function (req, res, next) {
-    console.log("getUserOnline");
-    db.getUserData(req.params.id)
+module.exports.getUsersOnline = function (allUsersUnique) {
+    console.log("getUsersOnline", allUsersUnique);
+    return db.getUsersOnline(allUsersUnique)
         .then((data) => {
             // send back this user's data
             // console.log("data",data.rows);
-            res.json(data.rows[0]);
+            return data.rows;
         })
         .catch((err) => {
-            console.log("err in db.getUserData: ", err);
-            res.json({ errMsg: "Error in Database"});
+            console.log("err in db.getUsersOnline: ", err);
         });
 };
 

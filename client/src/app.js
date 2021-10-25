@@ -5,8 +5,9 @@ import { useDispatch, useSelector } from "react-redux";
 import { loggeduser } from "./redux/loggeduser/slice.js";
 import { Link } from "react-router-dom";
 
-import Chat from "./chat.js"
-import OnlineUsers from "./onlineusers.js"
+import Chat from "./chat.js";
+import OnlineUsers from "./onlineusers.js";
+import Game from "./game.js";
 
 export default function App() {
     const dispatch = useDispatch();
@@ -19,9 +20,9 @@ export default function App() {
         fetch("/user.json")
             .then(res => res.json())
             .then((data) => {
-                console.log("data:", data);
+                // console.log("data:", data);
                 dispatch(loggeduser(data));
-                })     
+            })     
             .catch(console.log());
     },[]);
 
@@ -37,6 +38,7 @@ export default function App() {
             )}
             <button><a href="/logout">Logout</a></button>
             <OnlineUsers />
+            <Game />
             <Chat />
         </>
     );

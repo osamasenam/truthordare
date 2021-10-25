@@ -33,7 +33,7 @@ const { postRegister, postLogin,
     getLastTenMsgs, postNewMsg,
     getLogout,
     getLastTenMsgsPrivate,
-    getUserOnline } = require('./middleware');
+    getUsersOnline } = require('./middleware');
 
 app.use(compression());
 
@@ -61,7 +61,6 @@ app.post("/SavePassword", postSavePassword);
 
 app.get("/user.json", getUser);
 
-app.get("/user/:id", getUserOnline);
 
 // app.post('/Uploader', uploader.single('file'), s3.upload, postProfileImage);
 
@@ -90,17 +89,22 @@ app.get("*", function (req, res) {
 });
 
 let allUsers = [];
+let allUsersUnique = [];
+
 // let allUsersArr = [];
 
 io.on('connection', async (socket) => {
 
     const userId = socket.request.session.userId;
     allUsers.push(userId);
-    allUsers = [...new Set(allUsers)];
+    allUsersUnique = [...new Set(allUsers)];
     console.log("allUsers:", allUsers);
+    console.log("allUsersUnique:", allUsersUnique);
 
+    const UsersOnline = await getUsersOnline(allUsersUnique);
+    // console.log("UsersOnline", UsersOnline);
     // emit to all the clients/sockets already connected 
-    io.sockets.emit('online users', allUsers);
+    io.sockets.emit('online users', UsersOnline);
 
     // allUsers.forEach(async function fn(elem) {
     //     console.log("elem:", elem);
@@ -142,8 +146,18 @@ io.on('connection', async (socket) => {
         io.sockets.emit('addChatMsg', getNewMsg);
     });
 
-    socket.on('disconnect', () => {
-        console.log(`User with the ID ${socket.id} just disconnected`);
+    socket.on('disconnect', async () => {
+        console.log(`User with the ID ${socket.id} just disconnected`,socket.request.session.userId);
+        const index = allUsers.indexOf(socket.request.session.userId);
+        allUsers.splice(index, 1);
+        console.log("allUsers:", allUsers);
+        allUsersUnique = [...new Set(allUsers)];
+        console.log("allUsersUnique:", allUsersUnique);
+        
+        // send an updated version for the currently online users
+        const UsersOnline = await getUsersOnline(allUsersUnique);
+        io.sockets.emit('online users', UsersOnline);
+
     });
 });
 

@@ -179,6 +179,12 @@ module.exports.getLastMsg = () => {
     return db.query(q);  
 };
 
+module.exports.getUsersOnline = (allUsersUnique) => {
+    const q = `SELECT id,first,last,image  FROM users WHERE id= ANY($1)`;
+    const params = [allUsersUnique];
+    return db.query(q, params);  
+};
+
 // module.exports.getLastTenMsgsPrivate = (otherId, userId) => {
 //     const q = `SELECT users.first, users.last, users.image, 
 //         messages.sender_id, messages.message, messages.created_at 
