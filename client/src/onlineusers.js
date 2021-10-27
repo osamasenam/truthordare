@@ -22,7 +22,7 @@ export default function OnlineUsers() {
                         <div key={i}>
                             <p >{user.first}</p>
                             <div>
-                                <img src={user.image} />
+                                {user.image? <img src={user.image} /> : <img src="/default.jpg" />}
                             </div>
                         </div>
                     );

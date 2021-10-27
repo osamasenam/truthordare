@@ -1,8 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { socket } from './socket';
 import { useDispatch, useSelector } from "react-redux";
-import {Helmet} from "react-helmet";
-
 
 export default function Game() {
 
@@ -10,26 +8,36 @@ export default function Game() {
         return state && state.onlineusers;
     });
 
-    const canvasRef = useRef();
-    const contextRef = useRef();
+    const canvasRef = useRef();    
     
-    
-    useEffect(async () => {
+    useEffect( () => {
         console.log("Game component has MOUNTED");
-        if(onlines) {
-            const img1 = onlines.length>0? onlines[0].image : '/default.jpg';
-            const img2 = onlines.length>1? onlines[1].image : '/default.jpg';
-            const img3 = onlines.length>2? onlines[2].image : '/default.jpg';
-            const img4 = onlines.length>3? onlines[3].image : '/default.jpg';
+        if(onlines && onlines.length == 5) {
+
+            let img1, img2, img3, img4;
+            // define which images will be used in the canvas
+            if(onlines.length > 1) {
+                img1 = onlines[1].image? onlines[1].image : '/default.jpg';
+            }
+            if(onlines.length > 2) {
+                img2 = onlines[2].image? onlines[2].image : '/default.jpg';
+            }
+            if(onlines.length > 3) {
+                img3 = onlines[3].image? onlines[3].image : '/default.jpg';
+            }
+            if(onlines.length > 4) {
+                img4 = onlines[4].image? onlines[4].image : '/default.jpg';
+            }
             const img5 = '/bottle.png';
         
-            var images = [img1,img2,img3,img4, img5];
-            var loadedImages = {};
-            var promiseArray = images.map(function(imgurl){
-                var prom = new Promise(function(resolve,reject){
-                    var img = new Image();
+            let images = [img1,img2,img3,img4, img5];
+            let loadedImages = {};
+            let promiseArray = images.map(function(imgurl){
+                let prom = new Promise(function(resolve,reject){
+                    let img = new Image();
                     img.onload = function(){
                         loadedImages[imgurl] = img;
+                        // the promise is resolved when the image is loaded successfully 
                         resolve();
                     };
                     img.src = imgurl;
@@ -37,18 +45,23 @@ export default function Game() {
                 return prom;
             });
 
+            // start drawing the canvas only after all images are successfully loaded
             Promise.all(promiseArray).then(imagesLoaded);
 
             function imagesLoaded(){
-            //start canvas work.
+                //start canvas work
                 const canvas = canvasRef.current;
                 const ctx = canvas.getContext("2d");
-
+                // define the font used for text 
                 ctx.font = 'normal 30px Arial';
+                // define the radius for the circle
                 const radius = canvas.width / 4;
-            
 
-                // draw circle
+                // the bottle dimensions 
+                const bottleW = 150;
+                const bottleL = radius/2;
+
+                // draw circle centered at the canvas center
                 ctx.beginPath();
                 ctx.arc(canvas.width / 2, canvas.height / 2, radius, 0, Math.PI * 2);
                 ctx.lineWidth = 10;
@@ -63,23 +76,22 @@ export default function Game() {
                 // ctx.strokeStyle = '#0C3D4A';
                 // ctx.stroke();
 
-                //
+                
                 let cornersArr = [];
-                // draw a pointer for each online player
+                // draw a pointer small line on the circle for each online player
                 for (let i = 0; i < 4; i++) {
                     const angle = i * (Math.PI * 2) / 4;       
                     ctx.lineWidth = 1;            
                     ctx.beginPath();
 
-                    var x1 = (canvas.width / 2) + Math.cos(angle) * (radius);
-                    var y1 = (canvas.height / 2) + Math.sin(angle) * (radius);
-                    var x2 = (canvas.width / 2) + Math.cos(angle) * (radius - (radius / 10));
-                    var y2 = (canvas.height / 2) + Math.sin(angle) * (radius - (radius / 10));
+                    let x1 = (canvas.width / 2) + Math.cos(angle) * (radius);
+                    let y1 = (canvas.height / 2) + Math.sin(angle) * (radius);
+                    let x2 = (canvas.width / 2) + Math.cos(angle) * (radius - (radius / 10));
+                    let y2 = (canvas.height / 2) + Math.sin(angle) * (radius - (radius / 10));
 
                     ctx.moveTo(x1, y1);
                     ctx.lineTo(x2, y2);
-
-                    ctx.strokeStyle = '#466B76';
+                    ctx.strokeStyle = 'black';
                     ctx.stroke();
 
                     cornersArr.push(x1);
@@ -87,43 +99,42 @@ export default function Game() {
 
                 }
 
-                // insert the player's images
-                const imgW = 50;
-                let imgArr = [new Image(100,100), new Image(100,100), new Image(100,100), new Image(100,100)];
-                imgArr[0].src = onlines[0].image;
-                imgArr[1].src = onlines[1].image;
-                imgArr[2].src = '/default.jpg';
-                imgArr[3].src = '/default.jpg';
+                // insert the player's image & name
+                const imgW = 50; // image width/length
 
                 if(onlines[0]) {
-                    ctx.drawImage(loadedImages[img1], cornersArr[0]-imgW/2, cornersArr[1]-imgW/2, 50, 50);
-                    ctx.fillText('player1', cornersArr[0]-imgW/2, cornersArr[1]-imgW/2);
+                    ctx.drawImage(loadedImages[img1], cornersArr[0]-imgW/2, cornersArr[1]-imgW/2, imgW, imgW);
+                    ctx.fillText(onlines[1].first, cornersArr[0]-imgW/2, cornersArr[1]-imgW/2);
                 }
                 if(onlines[1]) {
-                    ctx.drawImage(loadedImages[img2], cornersArr[2]-imgW/2, cornersArr[3]-imgW/2, 50, 50);
-                    ctx.fillText('player2', cornersArr[2]-imgW/2, cornersArr[3]-imgW/2);
+                    ctx.drawImage(loadedImages[img2], cornersArr[2]-imgW/2, cornersArr[3]-imgW/2, imgW, imgW);
+                    ctx.fillText(onlines[2].first, cornersArr[2]-imgW/2, cornersArr[3]-imgW/2);
                 }
                 if(onlines[2]) {
-                    ctx.drawImage(loadedImages[img3], cornersArr[4]-imgW/2, cornersArr[5]-imgW/2, 50, 50);
-                    ctx.fillText('player3', cornersArr[4]-imgW/2, cornersArr[5]-imgW/2);
+                    ctx.drawImage(loadedImages[img3], cornersArr[4]-imgW/2, cornersArr[5]-imgW/2, imgW, imgW);
+                    ctx.fillText(onlines[3].first, cornersArr[4]-imgW/2, cornersArr[5]-imgW/2);
                 }
                 if(onlines[3]) {
-                    ctx.drawImage(loadedImages[img4], cornersArr[6]-imgW/2, cornersArr[7]-imgW/2, 50, 50);
-                    ctx.fillText('player4', cornersArr[6]-imgW/2, cornersArr[7]-imgW/2);
+                    ctx.drawImage(loadedImages[img4], cornersArr[6]-imgW/2, cornersArr[7]-imgW/2, imgW, imgW);
+                    ctx.fillText(onlines[4].first, cornersArr[6]-imgW/2, cornersArr[7]-imgW/2);
                 }
 
-                var angle = Math.floor(Math.random() * 360);
-                var inc = 1;
-                var fps = 15;
-                let id;
-                let maxId = Math.floor(Math.random() * (100 - 50 + 1) + 50);
-                let endMove = false;
+                // the spinning bottle draw & animation
+                let angle = Math.floor(Math.random() * 360); // random start position each time the bottle spins
+                let inc = 1; // the increment for bottle roation angle each animation frame
+                let fps = 15; // animation frames per second
+                let id; // the current animation frame id
+                let maxId = Math.floor(Math.random() * (100 - 50 + 1) + 50); // random motion duration each time
+                let endMove = false; // the flag to stop bottle animation 
+                // animation function
                 function draw() {
+                    // the draw function renders the defined number of times per second
                     setTimeout(function() {
+                        // make sure to exit before a new requestAnimationFrame is done since it calls the draw() function again
                         if(endMove) {
                             return;
                         }
-                        // console.log("angle",angle);
+                        // we need to make sure the bottle points to any of the players when it stops
                         if(id > maxId && angle>=270) {
                             angle = 270;
                             endMove = true;
@@ -139,26 +150,25 @@ export default function Game() {
                         }
 
                         id = requestAnimationFrame(draw);
-                        // console.log("move id:",id);
                         
-                        // Drawing code goes here
-                        // the spinning bottle 
+                        // Drawing code goes here for the spinning bottle 
                         ctx.save();
                         ctx.translate(canvas.width / 2, canvas.width / 2);
+                        // make sure to clear only the old bottle draw every new frame 
                         ctx.clearRect(-150+50,  -radius/2, 300-50, radius);
                         ctx.rotate(angle*Math.PI/180);
-                        ctx.drawImage(loadedImages[img5],  -150,  -radius/2, 300, radius);
+                        // the canvas is shifted now at the bottle's center (0,0)
+                        ctx.drawImage(loadedImages[img5],  -bottleW,  -bottleL, 2*bottleW, 2*bottleL);
                         ctx.restore();
                         
-                        
-                        
+                        // make sure the inc value does not exceed 360 to keep the motion
                         if(inc >= 360) {
-                            inc = 90;
+                            inc = 10;
                         } else {
                             inc = inc*1.1;
                         }
                         
-
+                        // avoid having multiples of 360 
                         if(angle >= 360) {
                             angle = 0;
                         } else {
@@ -167,28 +177,8 @@ export default function Game() {
                     }, 1000 / fps);
                 }
                 draw();
-                
-                // setTimeout( function() { 
-                //     console.log("stop id:", id);
-                //     cancelAnimationFrame(id);
-                // }, 3000 );
-
-                // // the spinning bottle 
-                // ctx.save();
-                // ctx.translate(canvas.width / 2, canvas.width / 2);
-                // ctx.rotate(Math.PI/2);
-                // ctx.drawImage(loadedImages[img5],  -150,  -2*radius/2, 300, 2*radius);
-                // ctx.restore();
-
-            
-
             }
-
-
-        
-        
         }  
-
     }, [onlines]);
 
     
@@ -196,11 +186,12 @@ export default function Game() {
     return (
         <div className="game">
             <h1>Game</h1>
-            <canvas ref={canvasRef} id="canv" width="800" height="800" />
+            {onlines && onlines.length==5? 
+                (<canvas ref={canvasRef} id="canv" width="800" height="800" />)
+                : (<h3>waiting 4 players to join ...</h3>)
+            }
              
-            {/* <Helmet>
-                <script src="/script.js"></script>
-            </Helmet> */}
+            
         </div>
     );
 }

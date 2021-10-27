@@ -180,7 +180,8 @@ module.exports.getLastMsg = () => {
 };
 
 module.exports.getUsersOnline = (allUsersUnique) => {
-    const q = `SELECT id,first,last,image  FROM users WHERE id= ANY($1)`;
+    const q = `SELECT id,first,last,image  FROM users WHERE id= ANY($1)
+                ORDER BY id ASC`;
     const params = [allUsersUnique];
     return db.query(q, params);  
 };
