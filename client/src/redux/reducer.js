@@ -5,6 +5,7 @@ import stepReducer from "./step/slice.js";
 import messagesReducer from "./messages/slice.js";
 import onlineidReducer from "./onlineid/slice.js";
 import onlineusersReducer from "./onlineusers/slice.js";
+import gameroundReducer from "./gameround/slice.js";
 
 const rootReducer = combineReducers({
     errormsg: errormsgReducer,
@@ -12,7 +13,8 @@ const rootReducer = combineReducers({
     step: stepReducer,
     messages: messagesReducer,
     onlineid: onlineidReducer,
-    onlineusers: onlineusersReducer
+    onlineusers: onlineusersReducer,
+    gameround: gameroundReducer
 });
 
 export default rootReducer;

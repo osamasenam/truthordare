@@ -90,29 +90,78 @@ app.get("*", function (req, res) {
 
 let allUsers = [1];
 let allUsersUnique = [];
-
-// let allUsersArr = [];
+let roundsCounter = 0;
+let activeIndex = 0;
+let angle;
+let maxId;
 
 io.on('connection', async (socket) => {
 
     const userId = socket.request.session.userId;
     allUsers.push(userId);
     allUsersUnique = [...new Set(allUsers)];
-    console.log("allUsers:", allUsers);
-    console.log("allUsersUnique:", allUsersUnique);
+    // console.log("allUsers:", allUsers);
+    // console.log("allUsersUnique:", allUsersUnique);
 
     const UsersOnline = await getUsersOnline(allUsersUnique);
     // console.log("UsersOnline", UsersOnline);
     // emit to all the clients/sockets already connected 
     io.sockets.emit('online users', UsersOnline);
 
-    // allUsers.forEach(async function fn(elem) {
-    //     console.log("elem:", elem);
-    //     const userOnline = await getUserOnline(elem);
-    //     allUsersArr.push(userOnline);
-    // });
+    let newGame = true;
+    // start a game round once 4 online players exist
+    // let playTurns = UsersOnline; // to be rotated each new round
+    // playTurns.shift(); // remove the first chatbot element 
+    // console.log("connection with UsersOnline",UsersOnline);
+    let playTurns = UsersOnline.filter(user=> user.id!= 1);
+    // console.log("connection with playTurns",playTurns);
 
-    // console.log("allUsersArr:", allUsersArr);
+    // emit to all players the start signal & the current active player
+    if(newGame && playTurns.length == 4) {
+        angle = 0;
+        roundsCounter++;
+        // console.log("new activeIndex", activeIndex);
+        io.sockets.emit('start game', playTurns[activeIndex],angle);
+        activeIndex = activeIndex>=3? 0 : activeIndex+1;
+        // console.log("new game-UsersOnline", UsersOnline);
+        // console.log("new game with playTurns",playTurns);
+        // console.log("new game with active player",playTurns[0]);
+        newGame = false;
+    }
+    // console.log("playTurns outside",playTurns);
+
+    // To Be Done // then wait for a click event from this active player to do the bottle spinning
+    // console.log("round number-connection:", roundsCounter);
+    // console.log("after if playTurns",playTurns);
+
+    // listen for the signal of starting a new round
+    // to send the new active player whoes turn is now
+    socket.on("new round", (users) => {
+        angle = 0;
+        // console.log("users",users);
+        playTurns = users.filter(user=> user.id!= 1);
+        roundsCounter++;
+        // console.log("new round-UsersOnline", UsersOnline);
+        // console.log("new round-round number:", roundsCounter);
+        // console.log("new round playTurns", playTurns);
+        // do the array rotation
+        // let temp = playTurns.shift();
+        // playTurns.push(temp);
+        // console.log("after roation playTurns", playTurns);
+        // console.log("new activeIndex", activeIndex);
+        io.sockets.emit('start game', playTurns[activeIndex],angle);
+        activeIndex = activeIndex>=3? 0 : activeIndex+1;
+        
+        // console.log("another round with active player",playTurns[0]);
+    });
+
+    socket.on("new spin", () => {
+        angle = Math.floor(Math.random() * 360); // random start position each time the bottle spins
+        maxId = Math.floor(Math.random() * (100 - 50 + 1) + 50); // random motion duration each time
+        console.log("Random Angle,maxId",angle, maxId);
+        io.sockets.emit('do the spin',angle,maxId);
+        
+    });
 
     if (!userId) {
         return socket.disconnect(true);

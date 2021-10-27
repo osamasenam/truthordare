@@ -1,18 +1,55 @@
 import { useEffect, useRef } from 'react';
 import { socket } from './socket';
 import { useDispatch, useSelector } from "react-redux";
+import { gamestart } from "./redux/gameround/slice.js";
 
 export default function Game() {
 
+    const dispatch = useDispatch();
+
+    const canvasRef = useRef(); 
+
+    // inialize new game
+    let startFlag = false;
+    let spinClicked = false;
+    let newRoundClicked = false;
+
+    // contact with the server to get which player's turn is now 
+
+    
     const onlines = useSelector(state => {
         return state && state.onlineusers;
     });
 
-    const canvasRef = useRef();    
+    const activePlayer = useSelector(state => {
+        return state && state.gameround && state.gameround.activePlayerId;
+    });
+
+    const newRound = useSelector(state => {
+        return state && state.gameround && state.gameround.new;
+    });
+    
+
+    const angleServer = useSelector(state => {
+        return state && state.gameround && state.gameround.angle;
+    });
+
+    const idServer = useSelector(state => {
+        return state && state.gameround && state.gameround.maxId;
+    });
+
+    const loggedPlayer = useSelector(state => {
+        return state && state.loggeduser;
+    });
+
+
+
     
     useEffect( () => {
-        console.log("Game component has MOUNTED");
-        if(onlines && onlines.length == 5) {
+        console.log("Game component has MOUNTED"); 
+
+        if(angleServer && newRound && onlines && onlines.length == 5) {
+            console.log("startFlag",startFlag);
 
             let img1, img2, img3, img4;
             // define which images will be used in the canvas
@@ -120,11 +157,14 @@ export default function Game() {
                 }
 
                 // the spinning bottle draw & animation
-                let angle = Math.floor(Math.random() * 360); // random start position each time the bottle spins
+                console.log("angle from the server:",angleServer);
+                // let angle = Math.floor(Math.random() * 360); // random start position each time the bottle spins
+                let angle = angleServer;
                 let inc = 1; // the increment for bottle roation angle each animation frame
                 let fps = 15; // animation frames per second
-                let id; // the current animation frame id
-                let maxId = Math.floor(Math.random() * (100 - 50 + 1) + 50); // random motion duration each time
+                let id=0; // the current animation frame id
+                // let maxId = Math.floor(Math.random() * (100 - 50 + 1) + 50); // random motion duration each time
+                let maxId = idServer;
                 let endMove = false; // the flag to stop bottle animation 
                 // animation function
                 function draw() {
@@ -179,7 +219,7 @@ export default function Game() {
                 draw();
             }
         }  
-    }, [onlines]);
+    }, [onlines, activePlayer,newRound,angleServer]);
 
     
 
@@ -187,7 +227,31 @@ export default function Game() {
         <div className="game">
             <h1>Game</h1>
             {onlines && onlines.length==5? 
-                (<canvas ref={canvasRef} id="canv" width="800" height="800" />)
+                (<>
+                    {activePlayer && (<h2>only {activePlayer.first} may click</h2>)}
+                    <button onClick={(e) => {
+                        e.preventDefault();
+                        spinClicked = true;
+                        console.log("spinClicked",spinClicked);
+                        if(activePlayer.id === loggedPlayer.id) {
+                            startFlag = true;
+                            socket.emit('new spin');
+                            // dispatch(gamestart()); // change a state to re-run the useEffect
+                            console.log("startFlag",startFlag);
+                        }
+                    }}>SPIN</button>
+                    <button onClick={(e) => {
+                        e.preventDefault();
+                        newRoundClicked = true;
+                        console.log("newRoundClicked",newRoundClicked);
+                        if(activePlayer.id === loggedPlayer.id) {
+                            // emit to get the new active player from the server
+                            socket.emit('new round',onlines);
+                            console.log("msg emitted to server");
+                        }
+                    }}>NEW ROUND</button>
+                    <canvas ref={canvasRef} id="canv" width="800" height="800" />
+                </>)
                 : (<h3>waiting 4 players to join ...</h3>)
             }
              

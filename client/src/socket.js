@@ -4,6 +4,10 @@ import {
     newMessage,
 } from "./redux/messages/slice.js";
 import { onlineusers } from './redux/onlineusers/slice.js';
+import { gameround } from "./redux/gameround/slice.js";
+import { bottleAngle } from "./redux/gameround/slice.js";
+import { bottleId } from "./redux/gameround/slice.js";
+import { gamestart } from "./redux/gameround/slice.js";
 
 export let socket;
 
@@ -22,6 +26,20 @@ export const init = (store) => {
         }
         );
 
+        socket.on("start game", (arg1,arg2) =>{
+            store.dispatch(gameround(arg1));
+            // store.dispatch(bottleAngle(arg2));
+        }
+        );
+
+        socket.on("do the spin", (angle,id) =>{
+            // console.log("all currently online users:", msgs);
+            store.dispatch(bottleAngle(angle));
+            store.dispatch(bottleId(id));
+            store.dispatch(gamestart());
+        }
+        );
+
         socket.on("mostRecentMsgs", (msgs) =>
             store.dispatch(lastTenMessages(msgs))
         );
@@ -33,20 +51,7 @@ export const init = (store) => {
             store.dispatch(newMessage(msg));
         });
 
-        // socket.on("mostRecentMsgsPrivate", (msgs) =>
-        //     store.dispatch(lastTenMessagesPrivate(msgs))
-        // );
 
-        // socket.on("chatMessage", (msg) =>
-        //     store.dispatch(chatMessageReceived(msg))
-        // );
-
-        // socket.on("addChatMsgPrivate", (msg) => {
-        //     // console.log(`Got a message in the client!! I'm about to start the whoooole Redux process by dispatching in here!!
-        //     // My message is `,msg);
-        //     // this is where you should dispatch an action to put this message in redux
-        //     store.dispatch(newMessagePrivate(msg));
-        // });
 
     }
 };
