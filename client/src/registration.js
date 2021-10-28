@@ -1,12 +1,22 @@
 
 import { useEffect } from 'react';
 import { Link } from "react-router-dom";
+import { errormsg } from "./redux/errormsg/slice.js";
+import { useDispatch, useSelector } from "react-redux";
 
 export default function Registration () {
 
+    const dispatch = useDispatch();
+    
     let inputsObj = {};
     let showError = false;
     let image = "";
+    
+    const errMsg = useSelector(
+        (state) => {
+            return state.errormsg && state.errormsg;
+        }
+    );
     
     useEffect(() => {
         console.log("Registration component mounted");
@@ -30,20 +40,26 @@ export default function Registration () {
         fd.append('email', inputsObj.email);
         fd.append('password', inputsObj.password);
 
-        fetch("/registration.json", {
-            method: "POST",
-            body: fd 
-        })
-            .then(res => res.json())
-            .then((data) => {
-                console.log("data:", data);
-                if(!data.success) {
-                    showError = true;
-                }
-                // once the user is registered >>> we can trigger that using location.reload()
-                location.replace("/login");
+        if(inputsObj && inputsObj.email && inputsObj.password && inputsObj.first && inputsObj.last && image) {
+            fetch("/registration.json", {
+                method: "POST",
+                body: fd 
             })
-            .catch(console.log());
+                .then(res => res.json())
+                .then((data) => {
+                    console.log("data:", data);
+                    if(!data.success) {
+                        showError = true;
+                    }
+                    // once the user is registered >>> we can trigger that using location.reload()
+                    location.replace("/login");
+                })
+                .catch(console.log());
+        } else {
+            dispatch(errormsg("one of the input fields is missing!"));
+        }
+
+        
     }
 
     function fileSelectHandler(e) {
@@ -56,6 +72,7 @@ export default function Registration () {
     return (
         <div className='registration'>
             { showError && <h1>Error: Please register again!</h1>}
+            { errMsg && <h1>Error: {errMsg} </h1>}
             <h1>Registration</h1>
 
             <form>

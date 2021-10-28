@@ -174,7 +174,7 @@ export default function Game() {
                 let angle = angleServer;
                 let inc = 1; // the increment for bottle roation angle each animation frame
                 let fps = 15; // animation frames per second
-                let id=0; // the current animation frame id
+                let idManual=0; // the current animation frame id
                 // let maxId = Math.floor(Math.random() * (100 - 50 + 1) + 50); // random motion duration each time
                 let maxId = idServer;
                 let endMove = false; // the flag to stop bottle animation 
@@ -184,35 +184,38 @@ export default function Game() {
                     setTimeout(function() {
                         // make sure to exit before a new requestAnimationFrame is done since it calls the draw() function again
                         if(endMove) {
-                            // console.log("end id", id);
+
+                            console.log("idManual", idManual);
                             // cancelAnimationFrame(id);
                             console.log("angle", angle);
                             console.log("victim", victim);
                             dispatch(getVictim(victim));
                             // dispatch(updateStep());
                             socket.emit('next step',currentRoundStep, victim);
+                            idManual=0;
                             return;
                         }
                         // we need to make sure the bottle points to any of the players when it stops
-                        if(id > maxId && angle>=270) {
+                        if(idManual > maxId && angle>=270) {
                             angle = 270;
                             endMove = true;
                             victim = onlines[3];
-                        } else if(id > maxId && angle>=180) {
+                        } else if(idManual > maxId && angle>=180) {
                             angle = 180;
                             endMove = true;
                             victim = onlines[2];
-                        } else if(id > maxId && angle>=90) {
+                        } else if(idManual > maxId && angle>=90) {
                             angle = 90;
                             endMove = true;
                             victim = onlines[1];
-                        } else if(id > maxId && angle>=0) {
+                        } else if(idManual > maxId && angle>=0) {
                             angle = 0;
                             endMove = true;
                             victim = onlines[4];
                         }
 
-                        id = requestAnimationFrame(draw);
+                        requestAnimationFrame(draw);
+                        idManual++;
                         // console.log("id",id);
                         // Drawing code goes here for the spinning bottle 
                         ctx.save();
@@ -249,55 +252,65 @@ export default function Game() {
 
     return (
         <div className="game">
-            <h1>Game</h1>
-            {onlines && onlines.length==5? 
-                (<>
-                    {activePlayer && (<h2>only {activePlayer.first} may click</h2>)}
-                    <button onClick={(e) => {
-                        e.preventDefault();
-                        spinClicked = true;
-                        console.log("spinClicked",spinClicked);
-                        if(activePlayer.id === loggedPlayer.id) {
-                            startFlag = true;
-                            socket.emit('new spin');
-                            // dispatch(gamestart()); // change a state to re-run the useEffect
-                            console.log("startFlag",startFlag);
-                        }
-                    }}>SPIN</button>
-
-                    <button onClick={(e) => {
-                        e.preventDefault();
-                        newRoundClicked = true;
-                        console.log("newRoundClicked",newRoundClicked);
-                        if(activePlayer.id === loggedPlayer.id) {
-                            // emit to get the new active player from the server
-                            socket.emit('new round',onlines);
-                            console.log("msg emitted to server");
-                        }
-                    }}>NEW ROUND</button>
-
-                    <button onClick={(e) => {
-                        e.preventDefault();
-                        console.log("Erase Scores");
-                        fetch("/zeroScores", {
-                            method: "POST",
-                            headers: {"Content-Type": "application/json"},
-                            body: JSON.stringify(onlines),
-                        })
-                            .then(res => res.json())
-                            .then((data) => {
-                                if(data.success) {
-                                    console.log("scores were erased successfully");
+            <div className="game-container">
+                <h1>Game</h1>
+                {onlines && onlines.length==5? 
+                    (<>
+                        {activePlayer && (<h2>only {activePlayer.first} may click</h2>)}
+                        <div className="Btn">
+                            <button onClick={(e) => {
+                                e.preventDefault();
+                                spinClicked = true;
+                                console.log("spinClicked",spinClicked);
+                                if(activePlayer.id === loggedPlayer.id) {
+                                    startFlag = true;
+                                    socket.emit('new spin');
+                                    // dispatch(gamestart()); // change a state to re-run the useEffect
+                                    console.log("startFlag",startFlag);
                                 }
-                            })
-                            .catch(console.log());
-                    }}>Erase Scores</button>
-                    <canvas ref={canvasRef} id="canv" width="800" height="800" />
-                </>)
-                : (<h3>waiting 4 players to join ...</h3>)
-            }
+                            }}>SPIN</button>
+                        </div>
+
+                        <div className="Btn">
+                            <button onClick={(e) => {
+                                e.preventDefault();
+                                newRoundClicked = true;
+                                console.log("newRoundClicked",newRoundClicked);
+                                if(activePlayer.id === loggedPlayer.id) {
+                                // emit to get the new active player from the server
+                                    socket.emit('new round',onlines);
+                                    console.log("msg emitted to server");
+                                }
+                            }}>NEW ROUND</button>
+                        </div>
+
+                        <div className="Btn">
+                            <button onClick={(e) => {
+                                e.preventDefault();
+                                console.log("Erase Scores");
+                                fetch("/zeroScores", {
+                                    method: "POST",
+                                    headers: {"Content-Type": "application/json"},
+                                    body: JSON.stringify(onlines),
+                                })
+                                    .then(res => res.json())
+                                    .then((data) => {
+                                        if(data.success) {
+                                            console.log("scores were erased successfully");
+                                        }
+                                    })
+                                    .catch(console.log());
+                            }}>Erase Scores</button>
+                        </div>
+
+                        <div className="canv">
+                            <canvas ref={canvasRef} id="canv" width="800" height="800" />
+                        </div>
+                    </>)
+                    : (<h3>waiting 4 players to join ...</h3>)
+                }
              
-            
+            </div>    
         </div>
     );
 }

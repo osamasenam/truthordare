@@ -213,9 +213,10 @@ module.exports.updateScore = (id,point) => {
     return db.query(q, params);  
 };
 
-module.exports.getScores = () => {
-    const q = `SELECT * FROM score JOIN users ON (player_id=users.id)`;
-    return db.query(q);  
+module.exports.getScores = (ids) => {
+    const q = `SELECT * FROM score JOIN users ON (player_id=users.id) WHERE player_id=ANY($1)`;
+    const params = [ids];
+    return db.query(q,params);  
 };
 
 // module.exports.getLastTenMsgsPrivate = (otherId, userId) => {

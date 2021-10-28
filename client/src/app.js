@@ -27,20 +27,20 @@ export default function App() {
     },[]);
 
     return (
-        <>
+        <div className="app-container">
             {profile && (
-                <>
+                <div className="profile">
                     <h1>Welcome {profile.first} {profile.last}</h1>
                     <div className="profile-pic">
                         {profile.image? <img src={profile.image}></img> : <img src="/default.jpg"></img>}
                     </div>
-                </>
+                </div>
             )}
             <button><a href="/logout">Logout</a></button>
             <OnlineUsers />
             <Game />
             <Chat />
-        </>
+        </div>
     );
 }
 

@@ -469,9 +469,9 @@ module.exports.getTwoQuestions = function (table, num1, num2) {
         });
 };
 
-module.exports.getScores = function () {
-    
-    return db.getScores()
+module.exports.getScores = function (onlines) {
+    let arrIds = [onlines[1].id, onlines[2].id,onlines[3].id,onlines[4].id];
+    return db.getScores(arrIds)
         .then((data) => {
             console.log("data",data.rows);
             return data.rows;

@@ -1,9 +1,9 @@
 body {
-    background-color: ghostwhite;
+    background-color:hotpink;
 }
 
 .chat-messages-container {
-    height: 300px;
+    height: 200px;
     overflow-y: scroll;
     margin-bottom: 5%;
   }
@@ -45,3 +45,41 @@ body {
     grid-template-rows: repeat(2, 1fr);
     grid-gap: 5px; */
 }
+
+.app-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: repeat(10, auto);
+    grid-gap: 10px;
+    
+}
+
+.profile {
+    grid-column: 1;
+    grid-row: 1 / 2;
+  }
+  .app-container button {
+    grid-column: 1;
+    grid-row: 2 / 3;
+  }
+  .online-users {
+    grid-column: 1;
+    grid-row: 3 / 4;
+  }
+  .game {
+    grid-row: 4 / 7;
+    grid-column: 1;
+  }
+  .chat {
+    grid-column: 1;
+    grid-row: 7 / 10;
+  }
+
+  .game-container {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: auto;
+    grid-gap: 10px;
+}
+
+

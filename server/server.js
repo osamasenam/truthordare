@@ -199,7 +199,7 @@ io.on('connection', async (socket) => {
     io.sockets.emit('mostRecentMsgs', lastTenMsgs);
 
     // listening to the new message sent by a client
-    socket.on("my new chat message", async (newMsg, currentRoundStep, currentVictim, activePlayer) => {
+    socket.on("my new chat message", async (newMsg, currentRoundStep, currentVictim, activePlayer, onlines) => {
         if(userId == currentVictim.id && currentRoundStep == 0) {
             let getNewMsg = await postNewMsg(newMsg, userId);
             io.sockets.emit('addChatMsg', getNewMsg);
@@ -307,7 +307,7 @@ io.on('connection', async (socket) => {
         }
 
         if(userId == activePlayer.id && currentRoundStep == 4) {
-            let roundScore = await getScores();
+            let roundScore = await getScores(onlines);
             console.log('roundScore',roundScore);
             
             // score announce

@@ -33,30 +33,34 @@ export default function Login() {
         e.preventDefault();
         console.log("Login Btn clicked", inputsObj);
 
-        fetch("/login", {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify(inputsObj),
-        })
-            .then(res => res.json())
-            .then((data) => {
-                console.log("data:", data);
-                if(data.errMsg) {
-                    showError = data.errMsg;
-                    console.log("showError",showError);
-                    dispatch(errormsg(data.errMsg));
-                }
-                // once the user is logged in >>> we can trigger that using location.reload()
-                if(data.id) {
-                    console.log("logged in user:", data);
-                    dispatch(loggeduser(data));
-                    location.replace("/");
-                }
-                
+        if(inputsObj && inputsObj.email && inputsObj.password) {
+            fetch("/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify(inputsObj),
             })
-            .catch(console.log());
-        // update the error msg in state for the case of fetch failure
-    };
+                .then(res => res.json())
+                .then((data) => {
+                    console.log("data:", data);
+                    if(data.errMsg) {
+                        showError = data.errMsg;
+                        console.log("showError",showError);
+                        dispatch(errormsg(data.errMsg));
+                    }
+                    // once the user is logged in >>> we can trigger that using location.reload()
+                    if(data.id) {
+                        console.log("logged in user:", data);
+                        dispatch(loggeduser(data));
+                        location.replace("/");
+                    }
+                    
+                })
+                .catch(console.log());
+    
+        } else {
+            dispatch(errormsg("one of the input fields is missing!"));
+        }
+    }
 
     return (
         <div className='login'>

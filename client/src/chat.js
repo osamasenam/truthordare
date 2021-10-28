@@ -18,6 +18,10 @@ export default function Chat() {
         return state && state.gameround && state.gameround.activePlayerId;
     });
 
+    const onlines = useSelector(state => {
+        return state && state.onlineusers;
+    });
+
     // this will be undefined for you right now!
     // you'll have to run your chat sql file, do your inserts, write your query and your action creator, work with your reducer and ADD it to the global state so that thennnn you can retrieve/see them!
     // console.log('here are my last 10 chat messages: ', chatMessages);
@@ -38,7 +42,7 @@ export default function Chat() {
     const keyCheck = e => {
         if (e.key === 'Enter') {
             e.preventDefault(); // this will prevent going to the next line
-            socket.emit('my new chat message', e.target.value, currentRoundStep, currentVictim, activePlayer);
+            socket.emit('my new chat message', e.target.value, currentRoundStep, currentVictim, activePlayer, onlines );
             e.target.value = ""; // clears input field after we click enter
         }
     };
