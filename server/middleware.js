@@ -456,3 +456,89 @@ module.exports.getLastTenMsgsPrivate = function (otherId, userId) {
             console.log("err in db.getLastTenMsgs: ", err);
         });
 };
+
+module.exports.getTwoQuestions = function (table, num1, num2) {
+    
+    return db.getTwoQuestions(table, num1, num2)
+        .then((data) => {
+            // console.log("data",data.rows);
+            return data.rows;
+        })
+        .catch((err) => {
+            console.log("err in db.getTwoQuestions: ", err);
+        });
+};
+
+module.exports.getScores = function () {
+    
+    return db.getScores()
+        .then((data) => {
+            console.log("data",data);
+            return data;
+        })
+        .catch((err) => {
+            console.log("err in db.getScores: ", err);
+        });
+};
+
+
+module.exports.updateScore = function (id,point) {
+    
+    return db.updateScore(id,point)
+        .then((data) => {
+            // console.log("data",data.rows);
+            return {success: true};
+        })
+        .catch((err) => {
+            console.log("err in db.updateScore: ", err);
+        });
+};
+
+module.exports.initializScore = function (req, res, next) {
+    // console.log("req.body", req.body);
+    let allUsers = req.body;
+    allUsers = allUsers.filter(user=> user.id!= 1);
+    let users_id = [];
+    allUsers.filter(user=> {
+        users_id.push(user.id) ;
+    });
+    // console.log("users_id",users_id);
+    let promise1 = db.initializScore(users_id[0])
+        .then((data) => {
+            // console.log("data",data.rows);
+            return {success: true};
+        })
+        .catch((err) => {
+            console.log("err in db.initializScore: ", err);
+        });
+
+    let promise2 = db.initializScore(users_id[1])
+        .then((data) => {
+            // console.log("data",data.rows);
+            return {success: true};
+        })
+        .catch((err) => {
+            console.log("err in db.initializScore: ", err);
+        });
+
+    let promise3 = db.initializScore(users_id[2])
+        .then((data) => {
+            // console.log("data",data.rows);
+            return {success: true};
+        })
+        .catch((err) => {
+            console.log("err in db.initializScore: ", err);
+        });
+
+    let promise4 = db.initializScore(users_id[3])
+        .then((data) => {
+            // console.log("data",data.rows);
+            return {success: true};
+        })
+        .catch((err) => {
+            console.log("err in db.initializScore: ", err);
+        });
+
+    let promiseArray = [promise1,promise2,promise3,promise4];
+    return Promise.all(promiseArray).then(() => {return {success: true};});
+};

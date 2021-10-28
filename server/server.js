@@ -33,7 +33,8 @@ const { postRegister, postLogin,
     getLastTenMsgs, postNewMsg,
     getLogout,
     getLastTenMsgsPrivate,
-    getUsersOnline } = require('./middleware');
+    getUsersOnline,
+    initializScore, updateScore, getScores, getTwoQuestions } = require('./middleware');
 
 app.use(compression());
 
@@ -60,6 +61,8 @@ app.post("/ResetPassword", postResetPassword);
 app.post("/SavePassword", postSavePassword);
 
 app.get("/user.json", getUser);
+
+app.post("/zeroScores", initializScore);
 
 
 // app.post('/Uploader', uploader.single('file'), s3.upload, postProfileImage);
@@ -94,6 +97,9 @@ let roundsCounter = 0;
 let activeIndex = 0;
 let angle;
 let maxId;
+let vote1Sum = 0;
+let vote2Sum = 0;
+let roundFinish = false;
 
 io.on('connection', async (socket) => {
 
@@ -163,6 +169,17 @@ io.on('connection', async (socket) => {
         
     });
 
+    socket.on("next step", async (currentRoundStep,victim) => {
+        if(userId == victim.id && currentRoundStep == 0) {
+            let msg = `Do you choose Truth or Dare?, ${victim.first}`;
+            let userId = 1;
+            const getNewMsg = await postNewMsg(msg, userId);
+            io.sockets.emit('chatbot msg', getNewMsg);
+        }
+        
+    });
+
+
     if (!userId) {
         return socket.disconnect(true);
     }
@@ -180,20 +197,132 @@ io.on('connection', async (socket) => {
     // console.log("lastTenMsgs", lastTenMsgs);
     // emit to all the clients/sockets already connected 
     io.sockets.emit('mostRecentMsgs', lastTenMsgs);
-        
+
     // listening to the new message sent by a client
-    socket.on("my new chat message", async (newMsg) => {
-        // console.log("This message is coming in from chat.js component: ",newMsg);
-        // console.log(`user who sent the newMsg is ${userId}`);
+    socket.on("my new chat message", async (newMsg, currentRoundStep, currentVictim, activePlayer) => {
+        if(userId == currentVictim.id && currentRoundStep == 0) {
+            let getNewMsg = await postNewMsg(newMsg, userId);
+            io.sockets.emit('addChatMsg', getNewMsg);
+            // check the player chose truth or dare
+            // then grab 2 random questions from database to show
 
-        const getNewMsg = await postNewMsg(newMsg, userId);
-        // console.log(`newMsg`,getNewMsg);
+            // generate 2 different random numbers
+            let num1 = Math.floor(Math.random() * 10);
+            let num2;
+            do {
+                num2 = Math.floor(Math.random() * 10);
+            } while(num2 === num1);
 
-        // 1. do a db query to store the new chat message into the chat table!!
-        // 2. also do a db query to get info about the user (first name, last name, img) - will probably need to be a JOIN
-        // once you have your chat object, you'll want to EMIT it to EVERYONE so they can see it immediately.
-        io.sockets.emit('addChatMsg', getNewMsg);
+            if(newMsg.toLowerCase() == 'truth') {
+                // get 2 Questions from the truths db
+                const dbQuestions = await getTwoQuestions('truths',num1,num2);
+                // console.log("dbQuestions",dbQuestions);
+                let chatbotMsg = `${dbQuestions[0].truth} (vote1) or ${dbQuestions[1].truth} (vote2)`;
+                let getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+                chatbotMsg = `All players except ${currentVictim.first} write now vote1 or vote2`;
+                getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+                io.sockets.emit('upgrade the gameround step');
+            } else if(newMsg.toLowerCase() == 'dare') {
+                // get 2 Questions from the dares db
+                const dbQuestions = await getTwoQuestions('dares',num1,num2);
+                // console.log("dbQuestions",dbQuestions);
+                let chatbotMsg = `${dbQuestions[0].dare} (vote1) or ${dbQuestions[1].dare} (vote2)`;
+                let getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+                chatbotMsg = `All players except ${currentVictim.first} write now vote1 or vote2`;
+                getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+                io.sockets.emit('upgrade the gameround step');
+            } else {
+                // repeate the question if no valid answer given
+                let chatbotMsg = `Do you choose Truth or Dare?, ${currentVictim.first}`;
+                let getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+            }
+            
+        }
+
+        if(userId != currentVictim.id && currentRoundStep == 1) {
+            // add the other players votes in the chat box
+            let getNewMsg = await postNewMsg(newMsg, userId);
+            io.sockets.emit('addChatMsg', getNewMsg);
+            // collecting votes
+            if(newMsg == 'vote1') {
+                vote1Sum++;
+            } else if(newMsg == 'vote2') {
+                vote2Sum++;
+            }
+            
+            if((vote1Sum==2 && vote2Sum==1) || vote1Sum==3) {
+                let chatbotMsg = `vote1 was chosen, waiting ${currentVictim.first} to write (done) after the task is completed`;
+                let getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+                io.sockets.emit('upgrade the gameround step');
+            } else if((vote2Sum==2 && vote1Sum==1)  || vote2Sum==3) {
+                let chatbotMsg = `vote2 was chosen, waiting ${currentVictim.first} to write (done) after the task is completed`;
+                let getNewMsg = await postNewMsg(chatbotMsg, 1);
+                io.sockets.emit('chatbot msg', getNewMsg);
+                io.sockets.emit('upgrade the gameround step');
+            }
+        }
+
+        if(userId == currentVictim.id && currentRoundStep == 2) {
+            // add msg to chat box
+            let getNewMsg = await postNewMsg(newMsg, userId);
+            io.sockets.emit('addChatMsg', getNewMsg);
+            // ask the active player to confirm
+            let chatbotMsg = `Did ${currentVictim.first} pass or fail?, ${activePlayer.first}`;
+            getNewMsg = await postNewMsg(chatbotMsg, 1);
+            io.sockets.emit('chatbot msg', getNewMsg);
+            io.sockets.emit('upgrade the gameround step');
+        }
+
+
+        if(userId == activePlayer.id && currentRoundStep == 3) {
+            // add the other players votes in the chat box
+            let getNewMsg = await postNewMsg(newMsg, userId);
+            io.sockets.emit('addChatMsg', getNewMsg);
+
+            let chatbotMsg = `Write (score) to see the latest scores`;
+            getNewMsg = await postNewMsg(chatbotMsg, 1);
+            io.sockets.emit('chatbot msg', getNewMsg);
+
+            // update the score db
+            if(newMsg == 'pass') {
+                // add 1 point to the victim's score
+                let scoreflag = await updateScore(currentVictim.id,1);
+                console.log("scoreflag",scoreflag);
+                io.sockets.emit('upgrade the gameround step');
+                roundFinish = true;
+            } else if(newMsg == 'fail') {
+                // add -1 point to the victim's score
+                let scoreflag = await updateScore(currentVictim.id,1);
+                console.log("scoreflag",scoreflag);
+                io.sockets.emit('upgrade the gameround step');
+                roundFinish = true;
+            }
+
+        }
+
+        if(userId == activePlayer.id && currentRoundStep == 4) {
+            let roundScore = await getScores();
+            console.log('roundScore',roundScore);
+            
+            let chatbotMsg = `Round Finished. If you want start a new one, click NEW ROUND!`;
+            let getNewMsg = await postNewMsg(chatbotMsg, 1);
+            io.sockets.emit('chatbot msg', getNewMsg);
+            io.sockets.emit('clear gameround step');
+    
+            
+
+        }
+        
     });
+
+    
+
 
     socket.on('disconnect', async () => {
         console.log(`User with the ID ${socket.id} just disconnected`,socket.request.session.userId);

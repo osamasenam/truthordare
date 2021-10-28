@@ -186,6 +186,38 @@ module.exports.getUsersOnline = (allUsersUnique) => {
     return db.query(q, params);  
 };
 
+module.exports.getTwoQuestions = (table, num1, num2) => {
+    if(table == 'truths') {
+        const q = `SELECT truth FROM truths WHERE id=$1 OR id=$2`;
+        const params = [num1, num2];
+        return db.query(q, params);  
+    } else if(table == 'dares') {
+        const q = `SELECT dare FROM dares WHERE id=$1 OR id=$2`;
+        const params = [num1, num2];
+        return db.query(q, params);  
+    }
+    
+};
+
+module.exports.initializScore = (id) => {
+    const q = `INSERT INTO score (player_id,points) VALUES($1,0)
+        ON CONFLICT (player_id) DO
+        UPDATE SET points=0`;
+    const params = [id];
+    return db.query(q, params);  
+};
+
+module.exports.updateScore = (id,point) => {
+    const q = `UPDATE score SET points=points+$2 WHERE player_id=$1`;
+    const params = [id,point];
+    return db.query(q, params);  
+};
+
+module.exports.getScores = () => {
+    const q = `SELECT * FROM score`;
+    return db.query(q);  
+};
+
 // module.exports.getLastTenMsgsPrivate = (otherId, userId) => {
 //     const q = `SELECT users.first, users.last, users.image, 
 //         messages.sender_id, messages.message, messages.created_at 

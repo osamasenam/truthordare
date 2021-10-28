@@ -2,6 +2,8 @@ import { useEffect, useRef } from 'react';
 import { socket } from './socket';
 import { useDispatch, useSelector } from "react-redux";
 import { gamestart } from "./redux/gameround/slice.js";
+import { getVictim } from "./redux/gameround/slice.js";
+import { updateStep } from "./redux/gameround/slice.js";
 
 export default function Game() {
 
@@ -13,6 +15,7 @@ export default function Game() {
     let startFlag = false;
     let spinClicked = false;
     let newRoundClicked = false;
+    let victim; // the player whom the spinning bottle points to
 
     // contact with the server to get which player's turn is now 
 
@@ -42,7 +45,13 @@ export default function Game() {
         return state && state.loggeduser;
     });
 
+    const currentRoundStep = useSelector(state => {
+        return state && state.gameround && state.gameround.step;
+    });
 
+    const currentVictim = useSelector(state => {
+        return state && state.gameround && state.gameround.victim;
+    });
 
     
     useEffect( () => {
@@ -94,6 +103,9 @@ export default function Game() {
                 // define the radius for the circle
                 const radius = canvas.width / 4;
 
+                console.log("clearRect run");
+                ctx.clearRect(0,  0, canvas.width, canvas.height);
+
                 // the bottle dimensions 
                 const bottleW = 150;
                 const bottleL = radius/2;
@@ -139,19 +151,19 @@ export default function Game() {
                 // insert the player's image & name
                 const imgW = 50; // image width/length
 
-                if(onlines[0]) {
+                if(onlines[1]) {
                     ctx.drawImage(loadedImages[img1], cornersArr[0]-imgW/2, cornersArr[1]-imgW/2, imgW, imgW);
                     ctx.fillText(onlines[1].first, cornersArr[0]-imgW/2, cornersArr[1]-imgW/2);
                 }
-                if(onlines[1]) {
+                if(onlines[2]) {
                     ctx.drawImage(loadedImages[img2], cornersArr[2]-imgW/2, cornersArr[3]-imgW/2, imgW, imgW);
                     ctx.fillText(onlines[2].first, cornersArr[2]-imgW/2, cornersArr[3]-imgW/2);
                 }
-                if(onlines[2]) {
+                if(onlines[3]) {
                     ctx.drawImage(loadedImages[img3], cornersArr[4]-imgW/2, cornersArr[5]-imgW/2, imgW, imgW);
                     ctx.fillText(onlines[3].first, cornersArr[4]-imgW/2, cornersArr[5]-imgW/2);
                 }
-                if(onlines[3]) {
+                if(onlines[4]) {
                     ctx.drawImage(loadedImages[img4], cornersArr[6]-imgW/2, cornersArr[7]-imgW/2, imgW, imgW);
                     ctx.fillText(onlines[4].first, cornersArr[6]-imgW/2, cornersArr[7]-imgW/2);
                 }
@@ -172,25 +184,36 @@ export default function Game() {
                     setTimeout(function() {
                         // make sure to exit before a new requestAnimationFrame is done since it calls the draw() function again
                         if(endMove) {
+                            // console.log("end id", id);
+                            // cancelAnimationFrame(id);
+                            console.log("angle", angle);
+                            console.log("victim", victim);
+                            dispatch(getVictim(victim));
+                            // dispatch(updateStep());
+                            socket.emit('next step',currentRoundStep, victim);
                             return;
                         }
                         // we need to make sure the bottle points to any of the players when it stops
                         if(id > maxId && angle>=270) {
                             angle = 270;
                             endMove = true;
+                            victim = onlines[3];
                         } else if(id > maxId && angle>=180) {
                             angle = 180;
                             endMove = true;
+                            victim = onlines[2];
                         } else if(id > maxId && angle>=90) {
                             angle = 90;
                             endMove = true;
+                            victim = onlines[1];
                         } else if(id > maxId && angle>=0) {
                             angle = 0;
                             endMove = true;
+                            victim = onlines[4];
                         }
 
                         id = requestAnimationFrame(draw);
-                        
+                        // console.log("id",id);
                         // Drawing code goes here for the spinning bottle 
                         ctx.save();
                         ctx.translate(canvas.width / 2, canvas.width / 2);
@@ -208,12 +231,13 @@ export default function Game() {
                             inc = inc*1.1;
                         }
                         
+                        angle = angle + inc;
+
                         // avoid having multiples of 360 
                         if(angle >= 360) {
                             angle = 0;
-                        } else {
-                            angle = angle + inc;
-                        }
+                        } 
+
                     }, 1000 / fps);
                 }
                 draw();
@@ -240,6 +264,7 @@ export default function Game() {
                             console.log("startFlag",startFlag);
                         }
                     }}>SPIN</button>
+
                     <button onClick={(e) => {
                         e.preventDefault();
                         newRoundClicked = true;
@@ -250,6 +275,23 @@ export default function Game() {
                             console.log("msg emitted to server");
                         }
                     }}>NEW ROUND</button>
+
+                    <button onClick={(e) => {
+                        e.preventDefault();
+                        console.log("Erase Scores");
+                        fetch("/zeroScores", {
+                            method: "POST",
+                            headers: {"Content-Type": "application/json"},
+                            body: JSON.stringify(onlines),
+                        })
+                            .then(res => res.json())
+                            .then((data) => {
+                                if(data.success) {
+                                    console.log("scores were erased successfully");
+                                }
+                            })
+                            .catch(console.log());
+                    }}>Erase Scores</button>
                     <canvas ref={canvasRef} id="canv" width="800" height="800" />
                 </>)
                 : (<h3>waiting 4 players to join ...</h3>)

@@ -8,6 +8,7 @@ import { gameround } from "./redux/gameround/slice.js";
 import { bottleAngle } from "./redux/gameround/slice.js";
 import { bottleId } from "./redux/gameround/slice.js";
 import { gamestart } from "./redux/gameround/slice.js";
+import { updateStep } from "./redux/gameround/slice.js";
 
 export let socket;
 
@@ -51,7 +52,16 @@ export const init = (store) => {
             store.dispatch(newMessage(msg));
         });
 
+        socket.on("chatbot msg", (msg) => {
+            store.dispatch(newMessage(msg));
+        });
 
+        socket.on("upgrade the gameround step", () => {
+            store.dispatch(updateStep());
+        });
 
+        socket.on("clear gameround step", () => {
+            store.dispatch(gamestart());
+        });
     }
 };
