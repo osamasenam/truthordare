@@ -473,8 +473,8 @@ module.exports.getScores = function () {
     
     return db.getScores()
         .then((data) => {
-            console.log("data",data);
-            return data;
+            console.log("data",data.rows);
+            return data.rows;
         })
         .catch((err) => {
             console.log("err in db.getScores: ", err);

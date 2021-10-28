@@ -298,7 +298,7 @@ io.on('connection', async (socket) => {
                 roundFinish = true;
             } else if(newMsg == 'fail') {
                 // add -1 point to the victim's score
-                let scoreflag = await updateScore(currentVictim.id,1);
+                let scoreflag = await updateScore(currentVictim.id,-1);
                 console.log("scoreflag",scoreflag);
                 io.sockets.emit('upgrade the gameround step');
                 roundFinish = true;
@@ -310,13 +310,24 @@ io.on('connection', async (socket) => {
             let roundScore = await getScores();
             console.log('roundScore',roundScore);
             
-            let chatbotMsg = `Round Finished. If you want start a new one, click NEW ROUND!`;
+            // score announce
+            let chatbotMsg = `<${roundScore[0].first} : ${roundScore[0].points}> \n
+                        <${roundScore[1].first} : ${roundScore[1].points}> \n
+                        <${roundScore[2].first} : ${roundScore[2].points}> \n
+                        <${roundScore[3].first} : ${roundScore[3].points}>`;
             let getNewMsg = await postNewMsg(chatbotMsg, 1);
+            io.sockets.emit('chatbot msg', getNewMsg);
+            io.sockets.emit('clear gameround step');
+
+            // round finished
+            chatbotMsg = `Round Finished. If you want start a new one, click NEW ROUND!`;
+            getNewMsg = await postNewMsg(chatbotMsg, 1);
             io.sockets.emit('chatbot msg', getNewMsg);
             io.sockets.emit('clear gameround step');
     
             
-
+            vote1Sum = 0;
+            vote2Sum = 0;
         }
         
     });

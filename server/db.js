@@ -214,7 +214,7 @@ module.exports.updateScore = (id,point) => {
 };
 
 module.exports.getScores = () => {
-    const q = `SELECT * FROM score`;
+    const q = `SELECT * FROM score JOIN users ON (player_id=users.id)`;
     return db.query(q);  
 };
 
