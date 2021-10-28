@@ -253,7 +253,7 @@ export default function Game() {
     return (
         <div className="game">
             <div className="game-container">
-                <h1>Game</h1>
+                <h1>Truth or Dare Game</h1>
                 {onlines && onlines.length==5? 
                     (<>
                         {activePlayer && (<h2>only {activePlayer.first} may click</h2>)}
