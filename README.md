@@ -7,3 +7,5 @@ Truth or Dare – Spinning Bottle Game
 - The game instructions are given by a chat-bot
 
 ![alt text](https://developer-osama.herokuapp.com/spining-bottle1.png)
+![alt text](https://developer-osama.herokuapp.com/spining-bottle2.png)
+![alt text](https://developer-osama.herokuapp.com/spining-bottle3.png)
