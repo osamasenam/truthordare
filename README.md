@@ -7,7 +7,8 @@ Truth or Dare – Spinning Bottle Game
 - The game instructions are given by a chat-bot
 
 
-![social-network5](https://github.com/osamasenam/truthordare/assets/71031601/b6bac78a-b5c6-4d59-b19b-d5fb2c1fbcf4)
+![spining-bottle1](https://github.com/osamasenam/truthordare/assets/71031601/cfd36c68-5edf-4c65-ab0e-0fcf4351f45c)
 
-![alt text](https://developer-osama.herokuapp.com/spining-bottle2.png)
-![alt text](https://developer-osama.herokuapp.com/spining-bottle3.png)
+![spining-bottle2](https://github.com/osamasenam/truthordare/assets/71031601/a5117f6e-b1ef-4cc1-8b4b-3c2e5262fc30)
+
+![spining-bottle3](https://github.com/osamasenam/truthordare/assets/71031601/64747dfb-e4ab-4884-9f47-3ff95d4eb215)
